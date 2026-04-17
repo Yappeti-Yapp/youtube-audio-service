@@ -1,4 +1,4 @@
-FROM node:20-bullseye
+FROM node:20-bookworm
 
 # Install system deps: Python 3.11, ffmpeg, curl, Node for JS runtime
 RUN apt-get update && apt-get install -y \
