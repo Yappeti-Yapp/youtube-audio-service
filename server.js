@@ -27,25 +27,24 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'YouTube Audio Extractor' });
 });
 
-// Extract YouTube audio URL (EXISTING - UNCHANGED)
+// Extract YouTube audio URL
 app.post('/extract', async (req, res) => {
   try {
     const { url } = req.body;
-    
+
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
 
     console.log(`[Extract] Processing: ${url}`);
 
-    // Use yt-dlp to get the best audio stream URL
-    const { stdout, stderr } = await execAsync(
-      `yt-dlp --js-runtimes node --ignore-no-formats-error --no-warnings --format "bestaudio[ext=m4a]/bestaudio" --get-url "${url}"`
-      { timeout: 30000 } // 30 second timeout
+    const { stdout } = await execAsync(
+      `yt-dlp --js-runtimes node --ignore-no-formats-error --no-warnings --format "bestaudio[ext=m4a]/bestaudio" --get-url "${url}"`,
+      { timeout: 30000 }
     );
 
     const audioUrl = stdout.trim();
-    
+
     if (!audioUrl) {
       console.error('[Extract] No audio URL returned');
       return res.status(500).json({ error: 'Failed to extract audio URL' });
@@ -53,44 +52,42 @@ app.post('/extract', async (req, res) => {
 
     console.log(`[Extract] ✅ Success`);
     res.json({ audioUrl });
+
   } catch (error) {
     console.error('[Extract] ❌ Error:', error.message);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to extract audio',
-      details: error.message 
+      details: error.message
     });
   }
 });
 
-// Download YouTube audio and return binary file (NEW)
+// Download YouTube audio and return binary file
 app.post('/download', async (req, res) => {
   let tempFile = null;
-  
+
   try {
     const { url } = req.body;
-    
+
     if (!url) {
       return res.status(400).json({ error: 'URL is required' });
     }
 
     console.log(`[Download] Processing: ${url}`);
 
-    // Create temporary file path
     const tempDir = os.tmpdir();
     const randomName = `youtube_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     tempFile = path.join(tempDir, randomName);
 
     console.log(`[Download] Downloading audio with yt-dlp...`);
 
-    // Download with yt-dlp and convert to mp3
     await execAsync(
-      `yt-dlp --js-runtimes node --ignore-no-formats-error --no-warnings --format "bestaudio[ext=m4a]/bestaudio" -x --audio-format mp3 -o "${tempFile}.%(ext)s" "${url}"`
-      { timeout: 120000 } // 2 minute timeout for download
+      `yt-dlp --js-runtimes node --ignore-no-formats-error --no-warnings --format "bestaudio[ext=m4a]/bestaudio" -x --audio-format mp3 -o "${tempFile}.%(ext)s" "${url}"`,
+      { timeout: 120000 }
     );
 
-    // The output file will be tempFile.mp3
     const mp3File = `${tempFile}.mp3`;
-    
+
     if (!fs.existsSync(mp3File)) {
       throw new Error('Downloaded file not found');
     }
@@ -98,16 +95,14 @@ app.post('/download', async (req, res) => {
     const fileSize = fs.statSync(mp3File).size;
     console.log(`[Download] ✅ Success (${(fileSize / 1024 / 1024).toFixed(2)} MB)`);
 
-    // Send file as binary
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Disposition', 'attachment; filename="audio.mp3"');
     res.setHeader('Content-Length', fileSize);
-    
+
     const fileStream = fs.createReadStream(mp3File);
-    
+
     fileStream.pipe(res);
-    
-    // Clean up after sending
+
     fileStream.on('end', () => {
       fs.unlink(mp3File, (err) => {
         if (err) console.error('[Download] Cleanup error:', err);
@@ -124,18 +119,17 @@ app.post('/download', async (req, res) => {
 
   } catch (error) {
     console.error('[Download] ❌ Error:', error.message);
-    
-    // Clean up on error
+
     if (tempFile) {
       const mp3File = `${tempFile}.mp3`;
       if (fs.existsSync(mp3File)) {
         fs.unlinkSync(mp3File);
       }
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: 'Failed to download audio',
-      details: error.message 
+      details: error.message
     });
   }
 });
