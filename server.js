@@ -39,7 +39,7 @@ app.post('/extract', async (req, res) => {
     console.log(`[Extract] Processing: ${url}`);
 
     const { stdout } = await execAsync(
-      `yt-dlp --js-runtimes node --get-url "${url}"`
+      `yt-dlp --js-runtimes node --get-url "${url}"`,
       { timeout: 30000 }
     );
 
