@@ -84,7 +84,7 @@ app.post('/download', async (req, res) => {
 
     // Download with yt-dlp and convert to mp3
     await execAsync(
-      `yt-dlp -f "bestaudio" -x --audio-format mp3 -o "${tempFile}.%(ext)s" "${url}"`,
+      yt-dlp --js-runtimes node --extractor-args "youtube:player_client=android" -f bestaudio -x --audio-format mp3 -o "${tempFile}.%(ext)s" "${url}"
       { timeout: 120000 } // 2 minute timeout for download
     );
 
