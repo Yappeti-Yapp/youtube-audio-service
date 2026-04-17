@@ -40,7 +40,7 @@ app.post('/extract', async (req, res) => {
 
     // Use yt-dlp to get the best audio stream URL
     const { stdout, stderr } = await execAsync(
-      `yt-dlp --js-runtimes node -f bestaudio --get-url "${url}"`,
+      `yt-dlp --js-runtimes node --ignore-no-formats-error --no-warnings --format "bestaudio[ext=m4a]/bestaudio" --get-url "${url}"`
       { timeout: 30000 } // 30 second timeout
     );
 
@@ -84,7 +84,7 @@ app.post('/download', async (req, res) => {
 
     // Download with yt-dlp and convert to mp3
     await execAsync(
-      `yt-dlp -f bestaudio -x --audio-format mp3 -o "${tempFile}.%(ext)s" "${url}"`,
+      `yt-dlp --js-runtimes node --ignore-no-formats-error --no-warnings --format "bestaudio[ext=m4a]/bestaudio" -x --audio-format mp3 -o "${tempFile}.%(ext)s" "${url}"`
       { timeout: 120000 } // 2 minute timeout for download
     );
 
