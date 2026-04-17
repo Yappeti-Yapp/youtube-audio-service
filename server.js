@@ -39,7 +39,7 @@ app.post('/extract', async (req, res) => {
     console.log(`[Extract] Processing: ${url}`);
 
     const { stdout } = await execAsync(
-      `yt-dlp --js-runtimes node --get-url "${url}"`,
+      `yt-dlp --get-url "${url}"`,
       { timeout: 30000 }
     );
 
@@ -82,7 +82,7 @@ app.post('/download', async (req, res) => {
     console.log(`[Download] Downloading audio with yt-dlp...`);
 
     await execAsync(
-      `yt-dlp --js-runtimes node --ignore-no-formats-error --no-warnings --format "bestaudio[ext=m4a]/bestaudio" -x --audio-format mp3 -o "${tempFile}.%(ext)s" "${url}"`,
+      `yt-dlp -x --audio-format mp3 -o "${tempFile}.%(ext)s" "${url}"`,
       { timeout: 120000 }
     );
 
