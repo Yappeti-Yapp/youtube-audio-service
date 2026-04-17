@@ -40,7 +40,7 @@ app.post('/extract', async (req, res) => {
 
     // Use yt-dlp to get the best audio stream URL
     const { stdout, stderr } = await execAsync(
-      `yt-dlp -f bestaudio --get-url "${url}"`,
+      `yt-dlp --js-runtimes node -f bestaudio --get-url "${url}"`,
       { timeout: 30000 } // 30 second timeout
     );
 
